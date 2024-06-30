@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shark vs Crawfish</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #ffffff;
+        }
+        canvas {
+            border: 1px solid #000000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let shark = { x: 100, y: canvas.height / 2, width: 100, height: 60, speed: 5 };
+        let foodList = [];
+        let score = 0;
+
+        // Load images
+        const sharkImg = new Image();
+        sharkImg.src = 'sakana.png';
+        const foodImg = new Image();
+        foodImg.src = 'food.png';
+
+        // Generate food
+        function createFood() {
+            const food = {
+                x: canvas.width + Math.random() * 300,
+                y: Math.random() * (canvas.height - 30),
+                width: 30,
+                height: 30,
+                speed: 5
+            };
+            foodList.push(food);
+        }
+
+        // Update game state
+        function update() {
+            // Move shark
+            if (keys['ArrowUp']) {
+                shark.y -= shark.speed;
+            }
+            if (keys['ArrowDown']) {
+                shark.y += shark.speed;
+            }
+            shark.y = Math.max(0, Math.min(shark.y, canvas.height - shark.height));
+
+            // Move food and check collisions
+            for (let i = foodList.length - 1; i >= 0; i--) {
+                const food = foodList[i];
+                food.x -= food.speed;
+                if (food.x + food.width < 0) {
+                    foodList.splice(i, 1);
+                    createFood();
+                }
+                // Check collision with shark
+                if (shark.x < food.x + food.width &&
+                    shark.x + shark.width > food.x &&
+                    shark.y < food.y + food.height &&
+                    shark.y + shark.height > food.y) {
+                    foodList.splice(i, 1);
+                    score++;
+                }
+            }
+        }
+
+        // Draw game objects
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(sharkImg, shark.x, shark.y, shark.width, shark.height);
+            foodList.forEach(food => {
+                ctx.drawImage(foodImg, food.x, food.y, food.width, food.height);
+            });
+            // Display score
+            ctx.fillStyle = '#000000';
+            ctx.font = '24px Arial';
+            ctx.fillText('Score: ' + score, 10, 30);
+        }
+
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Handle keyboard input
+        const keys = {};
+        document.addEventListener('keydown', event => {
+            keys[event.key] = true;
+        });
+        document.addEventListener('keyup', event => {
+            keys[event.key] = false;
+        });
+
+        // Start the game
+        createFood();
+        gameLoop();
+    </script>
+</body>
+</html>
